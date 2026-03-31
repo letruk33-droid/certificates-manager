@@ -1,6 +1,8 @@
 # app.py
 import os
 import json
+import webbrowser
+import threading
 from flask import Flask, render_template, request, jsonify, send_file, session, redirect, url_for
 from datetime import datetime
 import re
@@ -893,6 +895,8 @@ def api_box_free_numbers(box_path):
         'free_numbers': free_numbers,
         'next_new': next_new
     })
-
+def open_browser():
+    """Открывает браузер через 1 секунду после запуска"""
+    webbrowser.open('http://127.0.0.1:5000')
 if __name__ == '__main__':
     app.run(debug=True, host='127.0.0.1', port=5000)
