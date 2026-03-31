@@ -1,8 +1,6 @@
 # app.py
 import os
 import json
-import webbrowser
-import threading
 from flask import Flask, render_template, request, jsonify, send_file, session, redirect, url_for
 from datetime import datetime
 import re
@@ -351,7 +349,7 @@ def parse_certificates_from_text(text):
         series = parts[1].strip()
         number_cert = parts[2].strip()
         
-        if not re.match(r'N \d \d{8}', number_cert):
+        if not re.match(r'N \d \d+', number_cert):
             errors.append(f"Строка {line_num}: Неверный формат номера (N 0 00000000)")
             continue
         
@@ -698,6 +696,7 @@ def api_search_box():
     return jsonify({'results': results})
 
 @app.route('/api/add', methods=['POST'])
+@app.route('/api/add', methods=['POST'])
 def api_add():
     """API добавления сертификата"""
     data = request.json
@@ -710,8 +709,9 @@ def api_add():
     if not all([box_path, fio, series, number_cert]):
         return jsonify({'error': 'Заполните все поля'}), 400
     
-    if not re.match(r'N \d \d{8}', number_cert):
-        return jsonify({'error': 'Номер должен быть в формате: N 0 00000000'}), 400
+    # Новая проверка — любое количество цифр
+    if not re.match(r'N \d \d+', number_cert):
+        return jsonify({'error': 'Номер должен быть в формате: N 0 00000000 (можно любое количество цифр)'}), 400
     
     success, message = add_certificate(box_path, fio, series, number_cert, selected_number)
     
@@ -895,10 +895,6 @@ def api_box_free_numbers(box_path):
         'free_numbers': free_numbers,
         'next_new': next_new
     })
-def open_browser():
-    """Открывает браузер через 1 секунду после запуска"""
-    webbrowser.open('http://127.0.0.1:5000')
-if __name__ == '__main__':
-    # Открываем браузер через 1 секунду после запуска
-    threading.Timer(1, open_browser).start()
-    app.run(debug=False, host='127.0.0.1', port=5000)
+
+add_certificate
+    app.run(debug=True, host='127.0.0.1', port=5000)
