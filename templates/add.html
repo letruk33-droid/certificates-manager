@@ -341,28 +341,30 @@
         }
         
         document.getElementById('addForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const boxPath = document.getElementById('boxSelect').value;
-            const fio = document.getElementById('fio').value;
-            const series = document.getElementById('series').value;
-            const numberCert = document.getElementById('numberCert').value;
-            
-            if (!boxPath || !fio || !series || !numberCert) {
-                showAlert('Заполните все поля', 'error');
-                return;
-            }
-            
-            const numberPattern = /^N \d \d{8}$/;
-            if (!numberPattern.test(numberCert)) {
-                showAlert('Номер сертификата должен быть в формате: N 0 00000000', 'error');
-                return;
-            }
-            
-            if (!selectedNumber) {
-                showAlert('Пожалуйста, выберите номер в коробке', 'error');
-                return;
-            }
+    e.preventDefault();
+    
+    const boxPath = document.getElementById('boxSelect').value;
+    const fio = document.getElementById('fio').value;
+    const series = document.getElementById('series').value;
+    const numberCert = document.getElementById('numberCert').value;
+    
+    if (!boxPath || !fio || !series || !numberCert) {
+        showAlert('Заполните все поля', 'error');
+        return;
+    }
+    
+    // ИСПРАВЛЕННАЯ ПРОВЕРКА — любое количество цифр
+    const numberPattern = /^N \d \d+$/;
+    if (!numberPattern.test(numberCert)) {
+        showAlert('Номер должен быть в формате: N 0 (любое количество цифр)', 'error');
+        return;
+    }
+    
+    if (!selectedNumber) {
+        showAlert('Пожалуйста, выберите номер в коробке', 'error');
+        return;
+    }
+});
             
             try {
                 const response = await fetch('/api/add', {
