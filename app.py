@@ -700,7 +700,6 @@ def api_search_box():
     return jsonify({'results': results})
 
 @app.route('/api/add', methods=['POST'])
-@app.route('/api/add', methods=['POST'])
 def api_add():
     """API добавления сертификата"""
     data = request.json
