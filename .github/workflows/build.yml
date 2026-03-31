@@ -25,7 +25,7 @@ jobs:
     
     - name: Build with PyInstaller
       run: |
-        pyinstaller --onefile --name "Сертификаты" --add-data "templates;templates" --icon=icon.ico app.py
+        pyinstaller --onefile --name "Сертификаты" --add-data "templates;templates" app.py
     
     - name: Upload EXE
       uses: actions/upload-artifact@v4
