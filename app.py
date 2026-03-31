@@ -896,5 +896,11 @@ def api_box_free_numbers(box_path):
         'next_new': next_new
     })
 
-add_certificate
-    app.run(debug=True, host='127.0.0.1', port=5000)
+def open_browser():
+    """Открывает браузер через 1 секунду после запуска"""
+    webbrowser.open('http://127.0.0.1:5000')
+
+if __name__ == '__main__':
+    # Открываем браузер через 1 секунду после запуска
+    threading.Timer(1, open_browser).start()
+    app.run(debug=False, host='127.0.0.1', port=5000)
