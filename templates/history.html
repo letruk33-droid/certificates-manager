@@ -1,0 +1,481 @@
+<!-- templates/history.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>История операций</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            color: #333;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: #764ba2;
+            color: white;
+        }
+        
+        .nav-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .history-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .search-filter {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .search-filter input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 250px;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .filter-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .filter-btn:hover {
+            background: #764ba2;
+            color: white;
+        }
+        
+        .btn-clear {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        .btn-clear:hover {
+            background: #c82333;
+        }
+        
+        .stats {
+            background: #e7f3ff;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .history-table {
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #333;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .badge-add {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .badge-give {
+            display: inline-block;
+            background: #dc3545;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .badge-move {
+            display: inline-block;
+            background: #ffc107;
+            color: #333;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .empty-history {
+            text-align: center;
+            padding: 50px;
+            color: #999;
+        }
+        
+        .alert {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .page-btn {
+            padding: 5px 10px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        
+        .page-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .page-btn:hover:not(.active) {
+            background: #764ba2;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📜 История операций</h1>
+            <div class="nav">
+                <a href="/" class="nav-btn">🏠 Главная</a>
+                <a href="/search" class="nav-btn">🔍 Поиск</a>
+                <a href="/add" class="nav-btn">➕ Добавить</a>
+                <a href="/upload" class="nav-btn">📁 Загрузка</a>
+                <a href="/history" class="nav-btn active">📜 История</a>
+                <a href="/export" class="nav-btn">📊 Выгрузка Excel</a>
+                <a href="/move" class="nav-btn">🔄 Перемещение</a>
+                <a href="/admin" class="nav-btn">👑 Админ</a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div id="alert" style="display: none;"></div>
+            
+            <div class="history-controls">
+                <div class="search-filter">
+                    <input type="text" id="searchInput" placeholder="🔍 Поиск по ФИО, серии или номеру..." onkeyup="filterHistory()">
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" onclick="filterByAction('all')">Все</button>
+                        <button class="filter-btn" onclick="filterByAction('add')">➕ Добавления</button>
+                        <button class="filter-btn" onclick="filterByAction('give')">📤 Выдачи</button>
+                        <button class="filter-btn" onclick="filterByAction('move')">🔄 Перемещения</button>
+                    </div>
+                </div>
+                <button class="btn-clear" onclick="clearHistory()">🗑️ Очистить историю</button>
+            </div>
+            
+            <div class="stats" id="stats"></div>
+            
+            <div class="history-table" id="historyTable"></div>
+            
+            <div id="pagination" class="pagination"></div>
+        </div>
+    </div>
+    
+    <script>
+        let allHistory = [];
+        let filteredHistory = [];
+        let currentActionFilter = 'all';
+        let currentPage = 1;
+        const itemsPerPage = 20;
+        
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const data = await response.json();
+                allHistory = data.history.reverse();
+                applyFilters();
+            } catch (error) {
+                console.error('Ошибка загрузки истории:', error);
+            }
+        }
+        
+        function filterHistory() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            let tempHistory = allHistory;
+            
+            if (currentActionFilter !== 'all') {
+                tempHistory = tempHistory.filter(item => item.action === currentActionFilter);
+            }
+            
+            if (searchTerm) {
+                tempHistory = tempHistory.filter(item => 
+                    item.fio.toLowerCase().includes(searchTerm) ||
+                    item.series.toLowerCase().includes(searchTerm) ||
+                    item.number_cert.toLowerCase().includes(searchTerm) ||
+                    item.box_name.toLowerCase().includes(searchTerm)
+                );
+            }
+            
+            filteredHistory = tempHistory;
+            currentPage = 1;
+            displayHistory();
+            updateStats();
+        }
+        
+        function filterByAction(action) {
+            currentActionFilter = action;
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            filterHistory();
+        }
+        
+        function updateStats() {
+            const statsDiv = document.getElementById('stats');
+            const totalAdd = filteredHistory.filter(item => item.action === 'add').length;
+            const totalGive = filteredHistory.filter(item => item.action === 'give').length;
+            const totalMove = filteredHistory.filter(item => item.action === 'move').length;
+            
+            statsDiv.innerHTML = `
+                <strong>📊 Статистика:</strong> Всего операций: ${filteredHistory.length} | 
+                ➕ Добавлений: ${totalAdd} | 
+                📤 Выдач: ${totalGive} |
+                🔄 Перемещений: ${totalMove}
+            `;
+        }
+        
+        function displayHistory() {
+            const container = document.getElementById('historyTable');
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageHistory = filteredHistory.slice(start, end);
+            
+            if (pageHistory.length === 0) {
+                container.innerHTML = '<div class="empty-history">📭 История пуста</div>';
+                document.getElementById('pagination').innerHTML = '';
+                return;
+            }
+            
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Дата и время</th>
+                            <th>Действие</th>
+                            <th>Коробка</th>
+                            <th>ФИО</th>
+                            <th>Серия</th>
+                            <th>Номер сертификата</th>
+                            <th>Номер в коробке</th>
+                            <th>Детали</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            pageHistory.forEach(item => {
+                let actionBadge = '';
+                if (item.action === 'add') {
+                    actionBadge = '<span class="badge-add">➕ Добавление</span>';
+                } else if (item.action === 'give') {
+                    actionBadge = '<span class="badge-give">📤 Выдача</span>';
+                } else {
+                    actionBadge = '<span class="badge-move">🔄 Перемещение</span>';
+                }
+                
+                html += `
+                    <tr>
+                        <td>${item.datetime}</td>
+                        <td>${actionBadge}</td>
+                        <td>${item.box_name}</td>
+                        <td>${item.fio}</td>
+                        <td>${item.series}</td>
+                        <td>${item.number_cert}</td>
+                        <td><strong>№ ${item.box_number}</strong></td>
+                        <td>${item.details || ''}</td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                    </tbody>
+                </table>
+            `;
+            
+            container.innerHTML = html;
+            updatePagination();
+        }
+        
+        function updatePagination() {
+            const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
+            const paginationDiv = document.getElementById('pagination');
+            
+            if (totalPages <= 1) {
+                paginationDiv.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            html += `<button class="page-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>◀</button>`;
+            
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    html += `<span style="padding: 5px;">...</span>`;
+                }
+            }
+            
+            html += `<button class="page-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>▶</button>`;
+            
+            paginationDiv.innerHTML = html;
+        }
+        
+        function goToPage(page) {
+            const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            displayHistory();
+        }
+        
+        async function clearHistory() {
+            if (!confirm('Вы уверены, что хотите очистить всю историю?\n\nЭто действие нельзя отменить!')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/history/clear', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert('✅ История очищена', 'success');
+                    await loadHistory();
+                } else {
+                    showAlert('❌ Ошибка при очистке', 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Ошибка при очистке', 'error');
+            }
+        }
+        
+        function showAlert(message, type) {
+            const alertDiv = document.getElementById('alert');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = message;
+            alertDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        loadHistory();
+    </script>
+</body>
+</html>

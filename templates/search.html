@@ -1,0 +1,868 @@
+<!-- templates/search.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поиск сертификатов</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            color: #333;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: #764ba2;
+            color: white;
+        }
+        
+        .nav-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .search-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .search-type {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 15px;
+        }
+        
+        .search-type-btn {
+            padding: 8px 20px;
+            background: #e9ecef;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .search-type-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .search-type-btn:hover {
+            background: #764ba2;
+            color: white;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-weight: bold;
+        }
+        
+        .form-group select, .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .double-search-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .btn-search {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        
+        .btn-search:hover {
+            background: #218838;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .results {
+            margin-top: 20px;
+        }
+        
+        .result-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: #f8f9fa;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .result-item:hover {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .result-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+        
+        .result-box {
+            display: inline-block;
+            background: #17a2b8;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-left: 5px;
+        }
+        
+        .btn-give {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 8px;
+            transition: all 0.3s;
+        }
+        
+        .btn-give:hover {
+            background: #c82333;
+            transform: scale(1.02);
+        }
+        
+        .alert {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .search-stats {
+            background: #e7f3ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .search-description {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .clear-btn {
+            background: #dc3545;
+            margin-top: 10px;
+        }
+        
+        .clear-btn:hover {
+            background: #c82333;
+        }
+        
+        .result-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .give-all-btn {
+            background: #ffc107;
+            color: #333;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .give-all-btn:hover {
+            background: #e0a800;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .giving {
+            animation: pulse 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Поиск сертификатов</h1>
+            <div class="nav">
+                <a href="/" class="nav-btn">🏠 Главная</a>
+                <a href="/search" class="nav-btn active">🔍 Поиск</a>
+                <a href="/add" class="nav-btn">➕ Добавить</a>
+                <a href="/upload" class="nav-btn">📁 Загрузка</a>
+                <a href="/history" class="nav-btn">📜 История</a>
+                <a href="/export" class="nav-btn">📊 Выгрузка Excel</a>
+                <a href="/move" class="nav-btn">🔄 Перемещение</a>
+                <a href="/admin" class="nav-btn">👑 Админ</a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <div id="globalAlert" style="display: none;"></div>
+            
+            <div class="search-section">
+                <div class="search-type">
+                    <button class="search-type-btn active" onclick="setSearchType('single')">🔍 Простой поиск</button>
+                    <button class="search-type-btn" onclick="setSearchType('double')">🔎 Двойной поиск (ФИО + Серия)</button>
+                </div>
+                
+                <!-- Простой поиск -->
+                <div id="singleSearch">
+                    <div class="search-type" style="border-bottom: none; padding-bottom: 0; margin-bottom: 15px;">
+                        <button class="search-type-btn active" onclick="setSingleSearchMode('all')">🌍 По всем коробкам</button>
+                        <button class="search-type-btn" onclick="setSingleSearchMode('box')">📦 В конкретной коробке</button>
+                    </div>
+                    
+                    <div id="singleAllSearch">
+                        <div class="form-group">
+                            <label>Поисковый запрос:</label>
+                            <input type="text" id="singleAllTerm" placeholder="Введите ФИО, серию или номер сертификата..." onkeypress="if(event.key==='Enter') searchSingleAll()">
+                            <div class="search-description">🔍 Поиск по ФИО, серии или номеру сертификата во всех коробках</div>
+                            <button class="btn-search" onclick="searchSingleAll()" style="margin-top: 10px;">🔍 Найти во всех коробках</button>
+                        </div>
+                    </div>
+                    
+                    <div id="singleBoxSearch" class="hidden">
+                        <div class="form-group">
+                            <label>Выберите коробку:</label>
+                            <select id="singleBoxSelect">
+                                <option value="">-- Выберите коробку --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Поисковый запрос:</label>
+                            <input type="text" id="singleBoxTerm" placeholder="Введите ФИО, серию или номер сертификата..." onkeypress="if(event.key==='Enter') searchSingleBox()">
+                            <div class="search-description">🔍 Поиск по ФИО, серии или номеру сертификата в выбранной коробке</div>
+                            <button class="btn-search" onclick="searchSingleBox()" style="margin-top: 10px;">🔍 Найти</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Двойной поиск (ФИО + Серия) -->
+                <div id="doubleSearch" class="hidden">
+                    <div class="search-type" style="border-bottom: none; padding-bottom: 0; margin-bottom: 15px;">
+                        <button class="search-type-btn active" onclick="setDoubleSearchMode('all')">🌍 По всем коробкам</button>
+                        <button class="search-type-btn" onclick="setDoubleSearchMode('box')">📦 В конкретной коробке</button>
+                    </div>
+                    
+                    <div id="doubleAllSearch">
+                        <div class="double-search-row">
+                            <div class="form-group">
+                                <label>ФИО:</label>
+                                <input type="text" id="doubleAllFio" placeholder="Введите фамилию, имя, отчество...">
+                                <div class="search-description">📝 Поиск по ФИО (можно ввести часть)</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Серия:</label>
+                                <input type="text" id="doubleAllSeries" placeholder="Введите серию сертификата...">
+                                <div class="search-description">🏷️ Поиск по серии (например: к24)</div>
+                            </div>
+                        </div>
+                        <button class="btn-search" onclick="searchDoubleAll()">🔎 Найти по ФИО и серии во всех коробках</button>
+                        <button class="btn-search btn-secondary clear-btn" onclick="clearDoubleAll()" style="margin-top: 5px;">🗑️ Очистить</button>
+                    </div>
+                    
+                    <div id="doubleBoxSearch" class="hidden">
+                        <div class="form-group">
+                            <label>Выберите коробку:</label>
+                            <select id="doubleBoxSelect">
+                                <option value="">-- Выберите коробку --</option>
+                            </select>
+                        </div>
+                        <div class="double-search-row">
+                            <div class="form-group">
+                                <label>ФИО:</label>
+                                <input type="text" id="doubleBoxFio" placeholder="Введите фамилию, имя, отчество...">
+                                <div class="search-description">📝 Поиск по ФИО (можно ввести часть)</div>
+                            </div>
+                            <div class="form-group">
+                                <label>Серия:</label>
+                                <input type="text" id="doubleBoxSeries" placeholder="Введите серию сертификата...">
+                                <div class="search-description">🏷️ Поиск по серии (например: к24)</div>
+                            </div>
+                        </div>
+                        <button class="btn-search" onclick="searchDoubleBox()">🔎 Найти по ФИО и серии</button>
+                        <button class="btn-search btn-secondary clear-btn" onclick="clearDoubleBox()" style="margin-top: 5px;">🗑️ Очистить</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="results" class="results"></div>
+        </div>
+    </div>
+    
+    <script>
+        const boxes = {{ boxes | tojson }};
+        let currentSingleMode = 'all';
+        let currentDoubleMode = 'all';
+        let currentResults = [];
+        
+        function populateBoxes() {
+            const singleSelect = document.getElementById('singleBoxSelect');
+            const doubleSelect = document.getElementById('doubleBoxSelect');
+            
+            singleSelect.innerHTML = '<option value="">-- Выберите коробку --</option>';
+            doubleSelect.innerHTML = '<option value="">-- Выберите коробку --</option>';
+            
+            for (const [key, name] of Object.entries(boxes)) {
+                const option1 = document.createElement('option');
+                option1.value = key;
+                option1.textContent = name;
+                singleSelect.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = key;
+                option2.textContent = name;
+                doubleSelect.appendChild(option2);
+            }
+        }
+        
+        function showAlert(message, type, targetId = 'globalAlert') {
+            const alertDiv = document.getElementById(targetId);
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = message;
+            alertDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                alertDiv.style.display = 'none';
+            }, 3000);
+        }
+        
+        function setSearchType(type) {
+            const singleSearch = document.getElementById('singleSearch');
+            const doubleSearch = document.getElementById('doubleSearch');
+            const btns = document.querySelectorAll('.search-type-btn');
+            
+            btns.forEach(btn => btn.classList.remove('active'));
+            
+            if (type === 'single') {
+                singleSearch.classList.remove('hidden');
+                doubleSearch.classList.add('hidden');
+                btns[0].classList.add('active');
+                document.getElementById('results').innerHTML = '';
+                currentResults = [];
+            } else {
+                singleSearch.classList.add('hidden');
+                doubleSearch.classList.remove('hidden');
+                btns[1].classList.add('active');
+                document.getElementById('results').innerHTML = '';
+                currentResults = [];
+            }
+        }
+        
+        function setSingleSearchMode(mode) {
+            currentSingleMode = mode;
+            const allSearch = document.getElementById('singleAllSearch');
+            const boxSearch = document.getElementById('singleBoxSearch');
+            const btns = document.querySelectorAll('#singleSearch .search-type-btn');
+            
+            btns.forEach(btn => btn.classList.remove('active'));
+            
+            if (mode === 'all') {
+                allSearch.classList.remove('hidden');
+                boxSearch.classList.add('hidden');
+                btns[0].classList.add('active');
+            } else {
+                allSearch.classList.add('hidden');
+                boxSearch.classList.remove('hidden');
+                btns[1].classList.add('active');
+            }
+            
+            document.getElementById('results').innerHTML = '';
+            currentResults = [];
+        }
+        
+        function setDoubleSearchMode(mode) {
+            currentDoubleMode = mode;
+            const allSearch = document.getElementById('doubleAllSearch');
+            const boxSearch = document.getElementById('doubleBoxSearch');
+            const btns = document.querySelectorAll('#doubleSearch .search-type-btn');
+            
+            btns.forEach(btn => btn.classList.remove('active'));
+            
+            if (mode === 'all') {
+                allSearch.classList.remove('hidden');
+                boxSearch.classList.add('hidden');
+                btns[0].classList.add('active');
+            } else {
+                allSearch.classList.add('hidden');
+                boxSearch.classList.remove('hidden');
+                btns[1].classList.add('active');
+            }
+            
+            document.getElementById('results').innerHTML = '';
+            currentResults = [];
+        }
+        
+        async function giveCertificate(boxPath, certId, fio, element) {
+            if (!confirm(`Выдать сертификат "${fio}"?\n\nСертификат будет удален из системы, номер освободится.`)) {
+                return;
+            }
+            
+            if (element) {
+                element.classList.add('giving');
+            }
+            
+            try {
+                const response = await fetch('/api/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        box_path: boxPath,
+                        cert_id: certId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(`✅ ${data.message}`, 'success');
+                    refreshCurrentSearch();
+                } else {
+                    showAlert(`❌ ${data.message}`, 'error');
+                }
+            } catch (error) {
+                showAlert('❌ Ошибка при выдаче сертификата', 'error');
+            } finally {
+                if (element) {
+                    element.classList.remove('giving');
+                }
+            }
+        }
+        
+        async function giveAllCertificates() {
+            if (currentResults.length === 0) {
+                showAlert('Нет сертификатов для выдачи', 'error');
+                return;
+            }
+            
+            const confirmMsg = `Выдать ВСЕ ${currentResults.length} сертификатов из результатов поиска?\n\nЭто действие нельзя отменить!`;
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+            
+            const doubleConfirm = confirm(`⚠️ ПОСЛЕДНЕЕ ПРЕДУПРЕЖДЕНИЕ!\n\nВы действительно хотите выдать ВСЕ ${currentResults.length} сертификатов?\n\nЭто действие НЕЛЬЗЯ отменить!`);
+            if (!doubleConfirm) {
+                return;
+            }
+            
+            let successCount = 0;
+            let errorCount = 0;
+            
+            const giveAllBtn = document.querySelector('.give-all-btn');
+            if (giveAllBtn) {
+                giveAllBtn.disabled = true;
+                giveAllBtn.textContent = '⏳ Выдача...';
+            }
+            
+            for (const cert of currentResults) {
+                try {
+                    const response = await fetch('/api/remove', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            box_path: cert.box_key,
+                            cert_id: cert.id
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    if (data.success) {
+                        successCount++;
+                    } else {
+                        errorCount++;
+                    }
+                } catch (error) {
+                    errorCount++;
+                }
+            }
+            
+            showAlert(`✅ Выдано: ${successCount}, ❌ Ошибок: ${errorCount}`, 'success');
+            await refreshCurrentSearch();
+            
+            if (giveAllBtn) {
+                giveAllBtn.disabled = false;
+                giveAllBtn.textContent = '📤 Выдать все найденные';
+            }
+        }
+        
+        async function refreshCurrentSearch() {
+            if (document.getElementById('singleSearch').classList.contains('hidden') === false) {
+                if (currentSingleMode === 'all') {
+                    await searchSingleAll(true);
+                } else {
+                    await searchSingleBox(true);
+                }
+            } else {
+                if (currentDoubleMode === 'all') {
+                    await searchDoubleAll(true);
+                } else {
+                    await searchDoubleBox(true);
+                }
+            }
+        }
+        
+        async function searchSingleAll(silent = false) {
+            const searchTerm = document.getElementById('singleAllTerm').value;
+            
+            if (!searchTerm && !silent) {
+                alert('Введите поисковый запрос');
+                return;
+            }
+            
+            if (!searchTerm && silent) return;
+            
+            try {
+                const response = await fetch('/api/search-all', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ search_term: searchTerm })
+                });
+                const data = await response.json();
+                currentResults = data.results;
+                displayResults(data.results, 'single');
+            } catch (error) {
+                if (!silent) alert('Ошибка при поиске');
+            }
+        }
+        
+        async function searchSingleBox(silent = false) {
+            const boxPath = document.getElementById('singleBoxSelect').value;
+            const searchTerm = document.getElementById('singleBoxTerm').value;
+            
+            if (!boxPath && !silent) {
+                alert('Выберите коробку');
+                return;
+            }
+            if (!searchTerm && !silent) {
+                alert('Введите поисковый запрос');
+                return;
+            }
+            
+            if ((!boxPath || !searchTerm) && silent) return;
+            
+            try {
+                const response = await fetch('/api/search-box', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        box_path: boxPath,
+                        search_term: searchTerm
+                    })
+                });
+                const data = await response.json();
+                currentResults = data.results;
+                displayBoxResults(data.results, 'single');
+            } catch (error) {
+                if (!silent) alert('Ошибка при поиске');
+            }
+        }
+        
+        async function searchDoubleAll(silent = false) {
+            const fio = document.getElementById('doubleAllFio').value.trim();
+            const series = document.getElementById('doubleAllSeries').value.trim();
+            
+            if (!fio && !series && !silent) {
+                alert('Введите хотя бы одно поле для поиска (ФИО или Серию)');
+                return;
+            }
+            
+            if (!fio && !series && silent) return;
+            
+            try {
+                const response = await fetch('/api/search-all', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ search_term: '' })
+                });
+                const data = await response.json();
+                
+                let filteredResults = data.results;
+                
+                if (fio) {
+                    const fioLower = fio.toLowerCase();
+                    filteredResults = filteredResults.filter(r => r.fio.toLowerCase().includes(fioLower));
+                }
+                
+                if (series) {
+                    const seriesLower = series.toLowerCase();
+                    filteredResults = filteredResults.filter(r => r.series.toLowerCase().includes(seriesLower));
+                }
+                
+                currentResults = filteredResults;
+                displayResults(filteredResults, 'double');
+            } catch (error) {
+                if (!silent) alert('Ошибка при поиске');
+            }
+        }
+        
+        async function searchDoubleBox(silent = false) {
+            const boxPath = document.getElementById('doubleBoxSelect').value;
+            const fio = document.getElementById('doubleBoxFio').value.trim();
+            const series = document.getElementById('doubleBoxSeries').value.trim();
+            
+            if (!boxPath && !silent) {
+                alert('Выберите коробку');
+                return;
+            }
+            if (!fio && !series && !silent) {
+                alert('Введите хотя бы одно поле для поиска (ФИО или Серию)');
+                return;
+            }
+            
+            if ((!boxPath || (!fio && !series)) && silent) return;
+            
+            try {
+                const response = await fetch(`/api/box-info/${boxPath}`);
+                const data = await response.json();
+                
+                let filteredResults = data.certificates || [];
+                
+                if (fio) {
+                    const fioLower = fio.toLowerCase();
+                    filteredResults = filteredResults.filter(r => r.fio.toLowerCase().includes(fioLower));
+                }
+                
+                if (series) {
+                    const seriesLower = series.toLowerCase();
+                    filteredResults = filteredResults.filter(r => r.series.toLowerCase().includes(seriesLower));
+                }
+                
+                currentResults = filteredResults;
+                displayBoxResults(filteredResults, 'double');
+            } catch (error) {
+                if (!silent) alert('Ошибка при поиске');
+            }
+        }
+        
+        function clearDoubleAll() {
+            document.getElementById('doubleAllFio').value = '';
+            document.getElementById('doubleAllSeries').value = '';
+            document.getElementById('results').innerHTML = '';
+            currentResults = [];
+        }
+        
+        function clearDoubleBox() {
+            document.getElementById('doubleBoxFio').value = '';
+            document.getElementById('doubleBoxSeries').value = '';
+            document.getElementById('results').innerHTML = '';
+            currentResults = [];
+        }
+        
+        function displayResults(results, searchType) {
+            const container = document.getElementById('results');
+            
+            if (results.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">🔍 Ничего не найдено</div>';
+                return;
+            }
+            
+            let html = `
+                <div class="search-stats">
+                    <span>📊 Найдено сертификатов: ${results.length}</span>
+                    <button class="give-all-btn" onclick="giveAllCertificates()">📤 Выдать все найденные (${results.length})</button>
+                </div>
+            `;
+            
+            results.forEach((result, index) => {
+                html += `
+                    <div class="result-item" id="result-${index}">
+                        <div>
+                            <span class="result-number">📍 Номер ${result.box_number}</span>
+                            <strong>${result.fio}</strong>
+                            <span class="result-box">📦 ${result.box}</span>
+                        </div>
+                        <div style="margin-top: 8px; color: #666;">
+                            <div>🏷️ Серия: ${result.series}</div>
+                            <div>🔢 Номер сертификата: ${result.number_cert}</div>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn-give" onclick="giveCertificate('${result.box_key}', '${result.id}', '${result.fio.replace(/'/g, "\\'")}', this.parentElement.parentElement)">
+                                📤 Выдать сертификат
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function displayBoxResults(results, searchType) {
+            const container = document.getElementById('results');
+            
+            if (results.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">🔍 Ничего не найдено</div>';
+                return;
+            }
+            
+            let html = `
+                <div class="search-stats">
+                    <span>📊 Найдено сертификатов: ${results.length}</span>
+                    <button class="give-all-btn" onclick="giveAllCertificates()">📤 Выдать все найденные (${results.length})</button>
+                </div>
+            `;
+            
+            results.forEach((result, index) => {
+                html += `
+                    <div class="result-item" id="result-${index}">
+                        <div>
+                            <span class="result-number">📍 Номер ${result.box_number}</span>
+                            <strong>${result.fio}</strong>
+                        </div>
+                        <div style="margin-top: 8px; color: #666;">
+                            <div>🏷️ Серия: ${result.series}</div>
+                            <div>🔢 Номер сертификата: ${result.number_cert}</div>
+                        </div>
+                        <div class="result-actions">
+                            <button class="btn-give" onclick="giveCertificate('${getBoxKeyForResult(result)}', '${result.id}', '${result.fio.replace(/'/g, "\\'")}', this.parentElement.parentElement)">
+                                📤 Выдать сертификат
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function getBoxKeyForResult(result) {
+            for (const [key, name] of Object.entries(boxes)) {
+                if (name === result.box) {
+                    return key;
+                }
+            }
+            return result.box;
+        }
+        
+        populateBoxes();
+    </script>
+</body>
+</html>

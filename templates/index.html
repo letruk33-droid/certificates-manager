@@ -1,0 +1,424 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Главная - Управление сертификатами</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .nav {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .nav-btn {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            color: #333;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+        
+        .nav-btn:hover {
+            background: #764ba2;
+            color: white;
+        }
+        
+        .nav-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .content {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .boxes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .box-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .box-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+        
+        .box-card h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .box-card.single {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+        
+        .box-card.parent {
+            background: linear-gradient(135deg, #fff5e6 0%, #ffe6cc 100%);
+        }
+        
+        .subboxes {
+            margin-top: 15px;
+            padding-left: 15px;
+            border-left: 3px solid #667eea;
+        }
+        
+        .subbox-item {
+            margin: 8px 0;
+            padding: 8px 12px;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .subbox-item:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .badge {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-left: 8px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: relative;
+            background: white;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 30px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .close:hover {
+            color: #333;
+        }
+        
+        .certificate-item {
+            border: 1px solid #ddd;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            background: #f8f9fa;
+        }
+        
+        .certificate-number {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+        
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+        
+        .btn-remove:hover {
+            background: #c82333;
+        }
+        
+        .search-box {
+            margin-bottom: 20px;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .empty-box {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Управление сертификатами</h1>
+            <div class="nav">
+                <a href="/" class="nav-btn active">🏠 Главная</a>
+                <a href="/search" class="nav-btn">🔍 Поиск</a>
+                <a href="/add" class="nav-btn">➕ Добавить</a>
+                <a href="/upload" class="nav-btn">📁 Загрузка</a>
+                <a href="/history" class="nav-btn">📜 История</a>
+                <a href="/export" class="nav-btn">📊 Выгрузка Excel</a>
+                <a href="/move" class="nav-btn">🔄 Перемещение</a>
+                <a href="/admin" class="nav-btn">👑 Админ</a>
+            </div>
+        </div>
+        
+        <div class="content">
+            <h2>📦 Коробки с сертификатами</h2>
+            <div class="boxes-grid" id="boxesGrid"></div>
+        </div>
+    </div>
+    
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3 id="modalTitle"></h3>
+            <div id="modalSearch" class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Поиск по ФИО, серии или номеру..." onkeyup="searchInModal()">
+            </div>
+            <div id="modalCertificates"></div>
+        </div>
+    </div>
+    
+    <script>
+        const boxes = {{ boxes | tojson }};
+        let currentBoxPath = '';
+        
+        function renderBoxes() {
+            const container = document.getElementById('boxesGrid');
+            container.innerHTML = '';
+            
+            const order = ['kommunarka', 'scherbinka', 'polgoda_tv', 'hodili', 'nikuda'];
+            
+            for (const key of order) {
+                if (boxes[key]) {
+                    const box = boxes[key];
+                    const boxCard = document.createElement('div');
+                    boxCard.className = `box-card ${box.type}`;
+                    
+                    if (box.type === 'single') {
+                        boxCard.onclick = () => openBox(key);
+                        boxCard.innerHTML = `<h3>📦 ${box.name}</h3>`;
+                    } else {
+                        boxCard.innerHTML = `
+                            <h3>📦 ${box.name}</h3>
+                            <div class="subboxes">
+                                ${Object.entries(box.children).map(([childKey, childName]) => `
+                                    <div class="subbox-item" onclick="event.stopPropagation(); openBox('${childKey}')">
+                                        📁 ${childName}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `;
+                    }
+                    
+                    container.appendChild(boxCard);
+                }
+            }
+        }
+        
+        async function openBox(boxPath) {
+            currentBoxPath = boxPath;
+            const boxName = getBoxName(boxPath);
+            document.getElementById('modalTitle').innerHTML = `📦 ${boxName}`;
+            document.getElementById('modal').style.display = 'block';
+            await loadBoxContent(boxPath);
+        }
+        
+        function getBoxName(boxPath) {
+            for (const [key, box] of Object.entries(boxes)) {
+                if (key === boxPath) {
+                    return box.name;
+                }
+                if (box.children && box.children[boxPath]) {
+                    return box.children[boxPath];
+                }
+            }
+            return boxPath;
+        }
+        
+        async function loadBoxContent(boxPath) {
+            try {
+                const response = await fetch(`/api/box-info/${boxPath}`);
+                const data = await response.json();
+                renderCertificates(data.certificates);
+            } catch (error) {
+                console.error('Ошибка загрузки:', error);
+                document.getElementById('modalCertificates').innerHTML = '<div class="empty-box">❌ Ошибка загрузки данных</div>';
+            }
+        }
+        
+        function renderCertificates(certificates) {
+            const container = document.getElementById('modalCertificates');
+            
+            if (!certificates || certificates.length === 0) {
+                container.innerHTML = '<div class="empty-box">📭 В этой коробке нет сертификатов</div>';
+                return;
+            }
+            
+            certificates.sort((a, b) => a.box_number - b.box_number);
+            
+            let html = `<div style="margin-bottom: 10px;"><strong>📊 Всего сертификатов:</strong> ${certificates.length}</div>`;
+            
+            certificates.forEach(cert => {
+                html += `
+                    <div class="certificate-item" data-fio="${cert.fio}" data-series="${cert.series}" data-number="${cert.number_cert}">
+                        <div>
+                            <span class="certificate-number">📍 Номер ${cert.box_number}</span>
+                            <strong>${cert.fio}</strong>
+                        </div>
+                        <div style="margin-top: 5px; font-size: 14px; color: #666;">
+                            🏷️ Серия: ${cert.series} | 🔢 Номер: ${cert.number_cert}
+                        </div>
+                        <button class="btn-remove" onclick="removeCertificate('${cert.id}')">📤 Выдать сертификат</button>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        async function removeCertificate(certId) {
+            if (!confirm('Выдать этот сертификат? Он будет удален из системы, номер освободится.')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/remove', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        box_path: currentBoxPath,
+                        cert_id: certId
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert(data.message);
+                    await loadBoxContent(currentBoxPath);
+                } else {
+                    alert('Ошибка: ' + data.message);
+                }
+            } catch (error) {
+                alert('Ошибка при выдаче сертификата');
+            }
+        }
+        
+        function searchInModal() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const certificates = document.querySelectorAll('.certificate-item');
+            
+            certificates.forEach(cert => {
+                const fio = cert.dataset.fio.toLowerCase();
+                const series = cert.dataset.series.toLowerCase();
+                const number = cert.dataset.number.toLowerCase();
+                
+                if (fio.includes(searchTerm) || series.includes(searchTerm) || number.includes(searchTerm)) {
+                    cert.style.display = 'block';
+                } else {
+                    cert.style.display = 'none';
+                }
+            });
+        }
+        
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            document.getElementById('searchInput').value = '';
+        }
+        
+        renderBoxes();
+        
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
