@@ -8,9 +8,13 @@ import io
 from functools import wraps
 from openpyxl import Workbook
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+import webbrowser
+import threading
 
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here_change_it'
+
+# Остальной код...
 
 # Файлы для хранения данных
 DATA_FILE = 'certificates_data.json'
