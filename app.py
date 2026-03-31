@@ -657,7 +657,7 @@ def api_add():
         return jsonify({'error': 'Заполните все поля'}), 400
     
     # Проверка формата: N пробел цифра пробел любое количество цифр
-    if not re.match(r'^N \d \d+$', number_cert):
+    if not re.match(r'^N \d \d+', number_cert):
         return jsonify({'error': 'Номер должен быть в формате: N 0 (любое количество цифр)'}), 400
     
     success, message = add_certificate(box_path, fio, series, number_cert, selected_number)
