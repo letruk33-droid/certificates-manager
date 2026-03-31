@@ -14,8 +14,6 @@ import threading
 app = Flask(__name__)
 app.secret_key = 'your_secret_key_here_change_it'
 
-# Остальной код...
-
 # Файлы для хранения данных
 DATA_FILE = 'certificates_data.json'
 HISTORY_FILE = 'history.json'
@@ -95,7 +93,7 @@ def add_to_history(action, box_name, fio, series, number_cert, box_number, detai
     history.append({
         'id': datetime.now().timestamp(),
         'datetime': datetime.now().strftime('%d.%m.%Y %H:%M:%S'),
-        'action': action,  # 'add', 'give', 'move'
+        'action': action,
         'box_name': box_name,
         'fio': fio,
         'series': series,
@@ -143,13 +141,12 @@ def add_certificate(box_path, fio, series, number_cert, selected_number=None):
     """Добавление нового сертификата"""
     data = load_data()
     
-    # Создаем структуру, если её нет
     if box_path not in data:
         data[box_path] = {}
     
     current = data[box_path]
     
-    # Проверяем на дубликаты
+    # Проверка на дубликаты
     for cert_info in current.values():
         if isinstance(cert_info, dict):
             if cert_info.get('series') == series and cert_info.get('number_cert') == number_cert:
@@ -180,14 +177,13 @@ def add_certificate(box_path, fio, series, number_cert, selected_number=None):
     
     save_data(data)
     
-    # Добавляем в историю
     box_name = ADD_BOXES.get(box_path, box_path)
     add_to_history('add', box_name, fio, series, number_cert, number_to_use, f"Добавлен сертификат")
     
     return True, f"Сертификат добавлен под номером {number_to_use}"
 
 def remove_certificate(box_path, cert_id):
-    """Удаление сертификата (выдача человеку)"""
+    """Удаление сертификата (выдача)"""
     data = load_data()
     
     if box_path not in data:
@@ -206,20 +202,18 @@ def remove_certificate(box_path, cert_id):
     
     save_data(data)
     
-    # Добавляем в историю
     box_name = ADD_BOXES.get(box_path, box_path)
     add_to_history('give', box_name, fio, series, number_cert, number, f"Выдан сертификат")
     
     return True, f"Сертификат {fio} выдан. Номер {number} освобожден"
 
 def delete_all_certificates(box_path=None):
-    """Удаление всех сертификатов из коробки или всех коробок"""
+    """Удаление всех сертификатов"""
     data = load_data()
     
     if box_path:
         if box_path in data:
             count = len(data[box_path])
-            # Добавляем записи в историю о массовом удалении
             box_name = ADD_BOXES.get(box_path, box_path)
             for cert_info in data[box_path].values():
                 if isinstance(cert_info, dict):
@@ -380,28 +374,20 @@ def add_multiple_certificates(box_path, certificates):
     return success_count, len(certificates) - success_count, results
 
 def export_to_excel(box_filter=None):
-    """Экспорт сертификатов в Excel (без pandas)"""
+    """Экспорт сертификатов в Excel"""
     data = load_data()
     
-    # Создаем Excel файл
     output = io.BytesIO()
     wb = Workbook()
-    wb.remove(wb.active)  # Удаляем пустой лист
+    wb.remove(wb.active)
     
-    # Если не указана конкретная коробка, не выгружаем ничего
     if not box_filter or box_filter == 'all':
-        # Создаем лист с информацией, что нужно выбрать коробку
         ws = wb.create_sheet(title="Информация")
         ws.append(['Для выгрузки выберите конкретную коробку'])
-        ws.append(['Перейдите на страницу выгрузки и выберите коробку из списка'])
-        for col in range(1, 3):
-            cell = ws.cell(row=1, column=col)
-            cell.font = Font(bold=True, color="FF0000")
         wb.save(output)
         output.seek(0)
         return output
     
-    # Проверяем, существует ли коробка
     if box_filter not in data:
         ws = wb.create_sheet(title="Ошибка")
         ws.append(['Коробка не найдена или пуста'])
@@ -412,15 +398,12 @@ def export_to_excel(box_filter=None):
     box_data = data[box_filter]
     box_name = ADD_BOXES.get(box_filter, box_filter)
     
-    # Создаем лист с названием коробки
     sheet_name = box_name[:31]
     ws = wb.create_sheet(title=sheet_name)
     
-    # Заголовки (только нужные поля)
     headers = ['Номер в коробке', 'ФИО', 'Серия', 'Номер сертификата']
     ws.append(headers)
     
-    # Стиль для заголовков
     header_font = Font(bold=True, color="FFFFFF", size=12)
     header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
     header_alignment = Alignment(horizontal="center", vertical="center")
@@ -431,7 +414,6 @@ def export_to_excel(box_filter=None):
         cell.fill = header_fill
         cell.alignment = header_alignment
     
-    # Тонкие границы для всех ячеек
     thin_border = Border(
         left=Side(style='thin'),
         right=Side(style='thin'),
@@ -439,7 +421,6 @@ def export_to_excel(box_filter=None):
         bottom=Side(style='thin')
     )
     
-    # Собираем данные
     rows = []
     for cert_id, cert_info in box_data.items():
         if isinstance(cert_info, dict):
@@ -450,25 +431,19 @@ def export_to_excel(box_filter=None):
                 'number_cert': cert_info.get('number_cert', '')
             })
     
-    # Сортируем по номеру в коробке
     rows.sort(key=lambda x: x['number'] if isinstance(x['number'], int) else 0)
     
-    # Добавляем данные
     for idx, row in enumerate(rows, start=2):
         ws.append([row['number'], row['fio'], row['series'], row['number_cert']])
-        
-        # Применяем границы к добавленным ячейкам
         for col in range(1, 5):
             cell = ws.cell(row=idx, column=col)
             cell.border = thin_border
             cell.alignment = Alignment(horizontal="left", vertical="center")
     
-    # Применяем границы к заголовкам
     for col in range(1, 5):
         cell = ws.cell(row=1, column=col)
         cell.border = thin_border
     
-    # Автоширина колонок
     for column in ws.columns:
         max_length = 0
         column_letter = column[0].column_letter
@@ -483,17 +458,13 @@ def export_to_excel(box_filter=None):
         adjusted_width = min(max_length + 2, 50)
         ws.column_dimensions[column_letter].width = adjusted_width
     
-    # Замораживаем заголовок
     ws.freeze_panes = 'A2'
     
-    # Добавляем строку с итогами
     total_row = len(rows) + 2
     ws.append([f'ИТОГО: {len(rows)} сертификатов', '', '', ''])
     total_cell = ws.cell(row=total_row, column=1)
     total_cell.font = Font(bold=True)
     total_cell.fill = PatternFill(start_color="E9ECEF", end_color="E9ECEF", fill_type="solid")
-    
-    # Объединяем ячейки для итогов
     ws.merge_cells(start_row=total_row, start_column=1, end_row=total_row, end_column=4)
     total_cell.alignment = Alignment(horizontal="center")
     
@@ -502,47 +473,39 @@ def export_to_excel(box_filter=None):
     return output
 
 def move_certificate(from_box, cert_id, to_box, target_number=None):
-    """Перемещение сертификата из одной коробки в другую"""
+    """Перемещение сертификата"""
     data = load_data()
     
-    # Проверяем существование коробок
     if from_box not in data:
         return False, "Коробка-источник не найдена"
     
-    # Создаем целевую коробку, если её нет
     if to_box not in data:
         data[to_box] = {}
     
     from_data = data[from_box]
     to_data = data[to_box]
     
-    # Проверяем существование сертификата
     if cert_id not in from_data:
         return False, "Сертификат не найден в исходной коробке"
     
-    # Получаем информацию о сертификате
     cert_info = from_data[cert_id]
     fio = cert_info.get('fio', '')
     series = cert_info.get('series', '')
     number_cert = cert_info.get('number_cert', '')
     old_number = cert_info.get('number', '?')
     
-    # Определяем новый номер
     if target_number:
-        # Проверяем, свободен ли выбранный номер
         for existing_cert in to_data.values():
             if isinstance(existing_cert, dict) and existing_cert.get('number') == target_number:
                 return False, f"Номер {target_number} уже занят в целевой коробке!"
         new_number = target_number
     else:
-        # Автоматически выбираем свободный или новый номер
         free_numbers = get_free_numbers(to_data)
         if free_numbers:
             new_number = free_numbers[0]
         else:
             new_number = get_next_new_number(to_data)
     
-    # Создаем новый сертификат в целевой коробке
     new_cert_id = f"{datetime.now().timestamp()}_{fio}"
     to_data[new_cert_id] = {
         'fio': fio,
@@ -556,12 +519,9 @@ def move_certificate(from_box, cert_id, to_box, target_number=None):
         'moved_at': datetime.now().isoformat()
     }
     
-    # Удаляем из исходной коробки
     del from_data[cert_id]
-    
     save_data(data)
     
-    # Добавляем в историю
     from_box_name = ADD_BOXES.get(from_box, from_box)
     to_box_name = ADD_BOXES.get(to_box, to_box)
     add_to_history('move', to_box_name, fio, series, number_cert, new_number, 
@@ -574,7 +534,6 @@ def get_all_certificates_for_moving(box_path=None):
     data = load_data()
     
     if box_path:
-        # Получаем сертификаты из конкретной коробки
         if box_path not in data:
             return []
         
@@ -590,7 +549,6 @@ def get_all_certificates_for_moving(box_path=None):
                 })
         return sorted(certificates, key=lambda x: x['box_number'])
     else:
-        # Получаем все сертификаты из всех коробок
         all_certs = []
         for box_key, box_data in data.items():
             box_name = ADD_BOXES.get(box_key, box_key)
@@ -607,7 +565,6 @@ def get_all_certificates_for_moving(box_path=None):
                     })
         return sorted(all_certs, key=lambda x: (x['box_name'], x['box_number']))
 
-# Декоратор для проверки авторизации
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -620,48 +577,39 @@ def login_required(f):
 
 @app.route('/')
 def index():
-    """Главная страница"""
     return render_template('index.html', boxes=MAIN_BOXES)
 
 @app.route('/search')
 def search_page():
-    """Страница поиска"""
     return render_template('search.html', boxes=SEARCH_BOXES)
 
 @app.route('/add')
 def add_page():
-    """Страница добавления"""
     return render_template('add.html', boxes=ADD_BOXES)
 
 @app.route('/upload')
 def upload_page():
-    """Страница загрузки из файла"""
     return render_template('upload.html', boxes=ADD_BOXES)
 
 @app.route('/history')
 def history_page():
-    """Страница истории"""
     return render_template('history.html')
 
 @app.route('/export')
 def export_page():
-    """Страница выгрузки Excel"""
     return render_template('export.html', boxes=ADD_BOXES)
 
 @app.route('/move')
 def move_page():
-    """Страница перемещения сертификатов"""
     return render_template('move.html', boxes=ADD_BOXES)
 
 @app.route('/admin')
 @login_required
 def admin_page():
-    """Админ панель"""
     return render_template('admin.html', boxes=ADD_BOXES)
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
-    """Вход в админку"""
     if request.method == 'POST':
         password = request.form.get('password')
         if password == 'slavatop':
@@ -673,22 +621,18 @@ def admin_login():
 
 @app.route('/admin/logout')
 def admin_logout():
-    """Выход из админки"""
     session.pop('logged_in', None)
     return redirect(url_for('index'))
 
 @app.route('/api/search-all', methods=['POST'])
 def api_search_all():
-    """API поиска по всем коробкам"""
     data = request.json
     search_term = data.get('search_term', '')
-    
     results = search_all_boxes(search_term)
     return jsonify({'results': results})
 
 @app.route('/api/search-box', methods=['POST'])
 def api_search_box():
-    """API поиска в конкретной коробке"""
     data = request.json
     box_path = data.get('box_path')
     search_term = data.get('search_term', '')
@@ -712,9 +656,9 @@ def api_add():
     if not all([box_path, fio, series, number_cert]):
         return jsonify({'error': 'Заполните все поля'}), 400
     
-    # Новая проверка — любое количество цифр
-    if not re.match(r'N \d \d+', number_cert):
-        return jsonify({'error': 'Номер должен быть в формате: N 0 00000000 (можно любое количество цифр)'}), 400
+    # Проверка формата: N пробел цифра пробел любое количество цифр
+    if not re.match(r'^N \d \d+$', number_cert):
+        return jsonify({'error': 'Номер должен быть в формате: N 0 (любое количество цифр)'}), 400
     
     success, message = add_certificate(box_path, fio, series, number_cert, selected_number)
     
@@ -725,7 +669,6 @@ def api_add():
 
 @app.route('/api/upload', methods=['POST'])
 def api_upload():
-    """API загрузки из файла"""
     if 'file' not in request.files:
         return jsonify({'error': 'Файл не выбран'}), 400
     
@@ -766,7 +709,6 @@ def api_upload():
 
 @app.route('/api/remove', methods=['POST'])
 def api_remove():
-    """API удаления сертификата (выдача)"""
     data = request.json
     box_path = data.get('box_path')
     cert_id = data.get('cert_id')
@@ -783,9 +725,7 @@ def api_remove():
 
 @app.route('/api/box-info/<path:box_path>')
 def api_box_info(box_path):
-    """Получение информации о коробке"""
     certificates, free_numbers = get_box_info(box_path)
-    
     return jsonify({
         'certificates': certificates,
         'free_numbers': free_numbers
@@ -793,20 +733,17 @@ def api_box_info(box_path):
 
 @app.route('/api/history')
 def api_history():
-    """Получение истории"""
     history = load_history()
     return jsonify({'history': history})
 
 @app.route('/api/history/clear', methods=['POST'])
 @login_required
 def api_history_clear():
-    """Очистка истории"""
     save_history([])
     return jsonify({'success': True, 'message': 'История очищена'})
 
 @app.route('/api/export', methods=['POST'])
 def api_export():
-    """Экспорт в Excel"""
     data = request.json
     box_filter = data.get('box_filter', 'all')
     
@@ -824,7 +761,6 @@ def api_export():
 @app.route('/api/admin/delete', methods=['POST'])
 @login_required
 def api_admin_delete():
-    """API удаления сертификатов (админка)"""
     data = request.json
     box_path = data.get('box_path')
     
@@ -837,10 +773,9 @@ def api_admin_delete():
 
 @app.route('/api/download-template')
 def download_template():
-    """Скачать шаблон для заполнения"""
     template_content = """# Шаблон для загрузки сертификатов
 # Формат: ФИО | Серия | Номер сертификата
-# Номер сертификата: N 0 00000000
+# Номер сертификата: N 0 (любое количество цифр)
 # Разделитель: | (вертикальная черта)
 
 Иванов Иван Иванович | к24 | N 1 12345678
@@ -857,16 +792,13 @@ def download_template():
 
 @app.route('/api/certificates-for-move', methods=['POST'])
 def api_certificates_for_move():
-    """API получения сертификатов для перемещения"""
     data = request.json
     box_path = data.get('box_path')
-    
     certificates = get_all_certificates_for_moving(box_path)
     return jsonify({'certificates': certificates})
 
 @app.route('/api/move', methods=['POST'])
 def api_move():
-    """API перемещения сертификата"""
     data = request.json
     from_box = data.get('from_box')
     cert_id = data.get('cert_id')
@@ -885,7 +817,6 @@ def api_move():
 
 @app.route('/api/box-free-numbers/<path:box_path>')
 def api_box_free_numbers(box_path):
-    """API получения свободных номеров в коробке"""
     data = load_data()
     
     if box_path not in data:
